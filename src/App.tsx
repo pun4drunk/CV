@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useId, useState } from 'react'
 
 const navLinks = [
   { href: '#about', label: 'About' },
@@ -106,6 +106,887 @@ const BRIGHT_DATA_LOGO =
 /** Official Bright SDK wordmark (light variant for dark UI) */
 const BRIGHT_SDK_ICON =
   'https://media.bright-sdk.com/2025/12/brightsdk_logo_light.svg'
+
+/** Bright SDK marketing site */
+const BRIGHT_SDK_URL = 'https://bright-sdk.com/'
+
+/** BrightSDK org on GitHub — samples, plugins, docs, tooling */
+const BRIGHT_SDK_ORG_URL = 'https://github.com/orgs/BrightSDK'
+
+/** Some slugs 404 on cdn.simpleicons.org; pin icons to match stack logos (see microsoftazure). */
+const SIMPLE_ICONS_ICONS_BASE =
+  'https://cdn.jsdelivr.net/npm/simple-icons@11.0.0/icons'
+
+type BrightSdkPlatformChip = {
+  iconSlug: string
+  color: string
+  label: string
+  vendor?: string
+  deprecated?: boolean
+  /** Icon hex for `theme="card"` when the default `color` is too dark on zinc chips */
+  cardIconColor?: string
+  /** Use when cdn.simpleicons.org has no asset for `iconSlug` (e.g. Amazon, Windows). */
+  iconSrc?: string
+  /** iconsOnly: popover copy (order-of-magnitude; not audited) */
+  popoverBlurb: string
+  /** iconsOnly: approximate reach; shown bold next to blurb */
+  popoverDevicesBold: string
+}
+
+const brightSdkApplePlatform: BrightSdkPlatformChip = {
+  iconSlug: 'apple',
+  color: '000000',
+  label: 'Apple',
+  cardIconColor: 'E8E8ED',
+  popoverBlurb: 'iOS, iPadOS & macOS through one Apple SDK surface.',
+  popoverDevicesBold: '~2B+ active Apple ecosystem devices',
+}
+
+/** Native client targets — simpleicons CDN (slug + hex, no #) */
+const brightSdkNativePlatforms: readonly BrightSdkPlatformChip[] = [
+  {
+    iconSlug: 'android',
+    color: '3DDC84',
+    label: 'Android',
+    popoverBlurb: 'Phones, tablets & embedded Android worldwide.',
+    popoverDevicesBold: '~3B+ active devices',
+  },
+  {
+    iconSlug: 'amazon',
+    color: 'FF9900',
+    label: 'Amazon',
+    iconSrc: `${SIMPLE_ICONS_ICONS_BASE}/amazon.svg`,
+    popoverBlurb: 'Fire OS, Fire TV, tablets & Amazon Appstore footprint.',
+    popoverDevicesBold: '~200M+ Amazon-device reach',
+  },
+  {
+    iconSlug: 'windows',
+    color: '0078D4',
+    label: 'Windows',
+    iconSrc: `${SIMPLE_ICONS_ICONS_BASE}/windows.svg`,
+    popoverBlurb: 'Desktops, laptops & embedded Windows installs.',
+    popoverDevicesBold: '~1.5B+ Windows 10/11 PCs',
+  },
+  brightSdkApplePlatform,
+]
+
+/** TV / OTT targets */
+const brightSdkTvPlatforms: readonly BrightSdkPlatformChip[] = [
+  {
+    iconSlug: 'lg',
+    color: 'A50034',
+    label: 'webOS',
+    vendor: 'LG',
+    popoverBlurb: 'LG smart TVs & set-tops running webOS.',
+    popoverDevicesBold: '~200M+ webOS TVs (cumulative)',
+  },
+  {
+    iconSlug: 'samsung',
+    color: '1428A0',
+    label: 'TizenOS',
+    vendor: 'Samsung',
+    popoverBlurb: 'Samsung TVs, wearables & IoT on Tizen.',
+    popoverDevicesBold: '~250M+ Tizen devices',
+  },
+  {
+    iconSlug: 'roku',
+    color: '662D91',
+    label: 'Roku',
+    deprecated: true,
+    popoverBlurb: 'Legacy streaming OS; integration path deprecated.',
+    popoverDevicesBold: '~80M+ active accounts',
+  },
+]
+
+/** Smart TV targets for integration utilities (excludes deprecated Roku). */
+const brightSdkTvPlatformsWithoutRoku: readonly BrightSdkPlatformChip[] =
+  brightSdkTvPlatforms.filter((p) => p.iconSlug !== 'roku')
+
+/** Game engines, hybrid stacks & build tooling in BrightSDK integration utility repos. */
+const brightSdkIntegrationUtilityFrameworkChips: readonly BrightSdkPlatformChip[] =
+  [
+    {
+      iconSlug: 'unity',
+      color: '000000',
+      label: 'Unity',
+      cardIconColor: 'FFFFFF',
+      popoverBlurb:
+        'Unity projects using Bright SDK plugins and sample integrations.',
+      popoverDevicesBold: 'leading engine for cross-platform games & apps',
+    },
+    {
+      iconSlug: 'unrealengine',
+      color: '0E1128',
+      label: 'Unreal Engine',
+      cardIconColor: 'E8E8ED',
+      popoverBlurb:
+        'Unreal Engine builds where Bright SDK ships as a native integration.',
+      popoverDevicesBold: 'major AAA & indie desktop and mobile pipeline',
+    },
+    {
+      iconSlug: 'react',
+      color: '61DAFB',
+      label: 'React Native',
+      popoverBlurb:
+        'React Native apps via the Bright SDK bridge, plugin, and samples.',
+      popoverDevicesBold: 'large cross-platform mobile developer base',
+    },
+    {
+      iconSlug: 'electron',
+      color: '47848F',
+      label: 'Electron',
+      cardIconColor: 'E8E8ED',
+      popoverBlurb:
+        'Desktop apps built with Electron and embedded web views where applicable.',
+      popoverDevicesBold: 'very wide desktop app distribution',
+    },
+    {
+      iconSlug: 'capacitor',
+      color: '119EFF',
+      label: 'Capacitor',
+      popoverBlurb:
+        'Capacitor hybrid apps combining web UI with native Bright SDK plugins.',
+      popoverDevicesBold: 'strong Ionic & web-to-native mobile footprint',
+    },
+    {
+      iconSlug: 'webpack',
+      color: '8DD6F9',
+      label: 'Webpack',
+      popoverBlurb:
+        'Web samples and JS bundles built and shipped through Webpack-style pipelines.',
+      popoverDevicesBold: 'ubiquitous web app bundling toolchain',
+    },
+    {
+      iconSlug: 'gradle',
+      color: '02303A',
+      label: 'Gradle',
+      cardIconColor: 'E8E8ED',
+      popoverBlurb:
+        'Android and multi-module native builds wired with Gradle where Bright SDK ships.',
+      popoverDevicesBold: 'default build system for Android & JVM ecosystems',
+    },
+  ]
+
+/** Project card: one 4-column grid (avoids 4 / 2 / broken rows across separate lists). */
+const brightSdkIntegrationUtilityCardPlatforms: readonly BrightSdkPlatformChip[] =
+  [
+    ...brightSdkNativePlatforms,
+    ...brightSdkTvPlatformsWithoutRoku,
+    ...brightSdkIntegrationUtilityFrameworkChips,
+  ]
+
+const brightSdkNodePlatform: BrightSdkPlatformChip = {
+  iconSlug: 'nodedotjs',
+  color: '339933',
+  label: 'Node.js',
+  popoverBlurb: 'Server-side tooling, CLIs & build pipelines.',
+  popoverDevicesBold: 'millions of hosts & dev machines',
+}
+
+const brightSdkJavaScriptPlatform: BrightSdkPlatformChip = {
+  iconSlug: 'javascript',
+  color: 'F7DF1E',
+  label: 'JavaScript',
+  popoverBlurb: 'Browsers, WebViews & embedded JS runtimes.',
+  popoverDevicesBold: '~5B+ browser-capable devices',
+}
+
+/** Resolve a platform/framework chip for integration-utility repo rows (modal list). */
+function brightSdkIntegrationUtilityChipBySlug(
+  slug: string,
+): BrightSdkPlatformChip {
+  const pool: readonly BrightSdkPlatformChip[] = [
+    ...brightSdkNativePlatforms,
+    ...brightSdkTvPlatformsWithoutRoku,
+    ...brightSdkIntegrationUtilityFrameworkChips,
+  ]
+  const found = pool.find((p) => p.iconSlug === slug)
+  if (found == null) {
+    throw new Error(
+      `brightSdkIntegrationUtilityChipBySlug: unknown slug "${slug}"`,
+    )
+  }
+  return found
+}
+
+const brightSdkIntegrationUtilityRepos: readonly {
+  slug: string
+  description: string
+  platforms: readonly BrightSdkPlatformChip[]
+}[] = [
+  {
+    slug: 'bright-sdk-integration',
+    description:
+      'Universal tool to streamline BrightSDK integration, written in Node.js.',
+    platforms: [brightSdkNodePlatform, brightSdkJavaScriptPlatform],
+  },
+  {
+    slug: 'react-native-plugin',
+    description:
+      'React Native plugin bridging BrightSDK with native Android and Windows.',
+    platforms: [
+      brightSdkIntegrationUtilityChipBySlug('react'),
+      brightSdkIntegrationUtilityChipBySlug('android'),
+      brightSdkIntegrationUtilityChipBySlug('windows'),
+    ],
+  },
+  {
+    slug: 'packages',
+    description: 'Bright SDK distribution packages and release artifacts.',
+    platforms: [
+      ...brightSdkNativePlatforms,
+      ...brightSdkTvPlatformsWithoutRoku,
+    ],
+  },
+  {
+    slug: 'react-native-sample',
+    description: 'Sample React Native app demonstrating Bright SDK integration.',
+    platforms: [
+      brightSdkIntegrationUtilityChipBySlug('react'),
+      brightSdkIntegrationUtilityChipBySlug('android'),
+      brightSdkApplePlatform,
+      brightSdkIntegrationUtilityChipBySlug('windows'),
+    ],
+  },
+  {
+    slug: 'bright-sdk-external-consent',
+    description:
+      'External consent screen implementation for Bright SDK partners.',
+    platforms: [
+      brightSdkJavaScriptPlatform,
+      brightSdkIntegrationUtilityChipBySlug('webpack'),
+    ],
+  },
+  {
+    slug: 'web-sample',
+    description: 'Sample web app demonstrating Bright SDK JavaScript integration.',
+    platforms: [
+      brightSdkJavaScriptPlatform,
+      brightSdkIntegrationUtilityChipBySlug('webpack'),
+    ],
+  },
+  {
+    slug: 'unity-sample',
+    description:
+      'Sample Unity project with Bright SDK for Android, macOS, iOS, and Windows.',
+    platforms: [
+      brightSdkIntegrationUtilityChipBySlug('unity'),
+      brightSdkIntegrationUtilityChipBySlug('android'),
+      brightSdkApplePlatform,
+      brightSdkIntegrationUtilityChipBySlug('windows'),
+    ],
+  },
+  {
+    slug: 'unity-plugin',
+    description:
+      'Unity plugin for integrating Bright SDK on Android, iOS, macOS, and Windows.',
+    platforms: [
+      brightSdkIntegrationUtilityChipBySlug('unity'),
+      brightSdkIntegrationUtilityChipBySlug('android'),
+      brightSdkApplePlatform,
+      brightSdkIntegrationUtilityChipBySlug('windows'),
+    ],
+  },
+  {
+    slug: 'external-consent-wizard',
+    description:
+      'Step-by-step consent wizard for Bright SDK partner app integration.',
+    platforms: [
+      brightSdkJavaScriptPlatform,
+      brightSdkIntegrationUtilityChipBySlug('webpack'),
+      brightSdkNodePlatform,
+    ],
+  },
+  {
+    slug: 'bright-sdk-settings-dialog',
+    description:
+      'Customizable settings dialog component for Bright SDK consent and configuration.',
+    platforms: [
+      brightSdkIntegrationUtilityChipBySlug('android'),
+      brightSdkIntegrationUtilityChipBySlug('gradle'),
+      brightSdkJavaScriptPlatform,
+    ],
+  },
+  {
+    slug: 'bright-sdk-integration-helper',
+    description:
+      'Helper utilities for streamlining Bright SDK integration in partner apps.',
+    platforms: [
+      brightSdkNodePlatform,
+      brightSdkJavaScriptPlatform,
+      brightSdkIntegrationUtilityChipBySlug('gradle'),
+    ],
+  },
+]
+
+function brightSdkPlatformChipAriaLabel(p: BrightSdkPlatformChip): string {
+  let s = p.label
+  if (p.vendor != null) s += ` (${p.vendor})`
+  if (p.deprecated) s += ' (deprecated)'
+  return s
+}
+
+function BrightSdkPlatformChips({
+  platforms,
+  theme,
+  className = '',
+  ariaLabel,
+  iconsOnly = false,
+  iconsOnlyFourCols = false,
+  popoverPlacement = 'adjacent',
+  showIconPopovers = true,
+}: {
+  platforms: readonly BrightSdkPlatformChip[]
+  theme: 'article' | 'card'
+  className?: string
+  ariaLabel: string
+  /** Projects card: logos only, several per row */
+  iconsOnly?: boolean
+  /** When `iconsOnly`, use a fixed 4-column grid (Projects section). */
+  iconsOnlyFourCols?: boolean
+  /**
+   * `adjacent` — popover floats beside/above the chip (Projects).
+   * `inline` — popover expands below the chip in layout (avoids clipping in scroll parents, e.g. utilities modal).
+   */
+  popoverPlacement?: 'adjacent' | 'inline'
+  /** When `iconsOnly`, hover/focus platform copy (off inside crowded dialogs). */
+  showIconPopovers?: boolean
+}) {
+  const platformPopoverBaseId = useId().replace(/:/g, '')
+  const chipLabeledArticleClass =
+    'flex w-full items-center gap-2 rounded-md border border-stone-300 bg-white/90 px-2.5 py-1.5 shadow-sm'
+  const chipLabeledCardClass =
+    'flex w-full items-center gap-2 rounded-lg bg-zinc-800/60 px-2.5 py-1.5 ring-1 ring-zinc-600/60'
+  const chipIconOnlyCardClass =
+    'flex size-10 shrink-0 items-center justify-center rounded-lg bg-zinc-800/60 ring-1 ring-zinc-600/60 sm:size-11'
+  const titleClass =
+    theme === 'article'
+      ? 'text-[13px] font-medium text-stone-800'
+      : 'text-sm font-medium text-zinc-100'
+  const metaClass =
+    theme === 'article' ? 'text-[11px] text-stone-600' : 'text-xs text-zinc-500'
+
+  return (
+    <ul
+      className={
+        iconsOnly
+          ? iconsOnlyFourCols
+            ? `inline-grid w-max max-w-full grid-cols-4 gap-x-1.5 gap-y-1.5 ${className}`
+            : `flex flex-wrap gap-2 ${className}`
+          : `flex w-full flex-col gap-2 ${className}`
+      }
+      role="list"
+      aria-label={ariaLabel}
+    >
+      {platforms.map((p, chipIndex) => {
+        const iconHex =
+          theme === 'card' && p.cardIconColor != null ? p.cardIconColor : p.color
+        const src =
+          p.iconSrc ?? `https://cdn.simpleicons.org/${p.iconSlug}/${iconHex}`
+        const invertOnDarkCard =
+          theme === 'card' && p.iconSrc != null
+        const chipClass = iconsOnly
+          ? chipIconOnlyCardClass
+          : theme === 'article'
+            ? chipLabeledArticleClass
+            : chipLabeledCardClass
+        const imgClass = iconsOnly
+          ? `h-6 w-6 shrink-0 sm:h-7 sm:w-7 ${invertOnDarkCard ? 'brightness-0 invert' : ''}`
+          : `h-5 w-5 shrink-0 ${invertOnDarkCard ? 'brightness-0 invert' : ''}`
+        const imgSize = iconsOnly ? 28 : 20
+
+        if (iconsOnly) {
+          if (!showIconPopovers) {
+            return (
+              <li
+                key={`${p.iconSlug}-${p.label}`}
+                className={p.deprecated ? 'opacity-75' : ''}
+                aria-label={brightSdkPlatformChipAriaLabel(p)}
+              >
+                <div className={chipClass}>
+                  <img
+                    src={src}
+                    alt=""
+                    width={imgSize}
+                    height={imgSize}
+                    className={imgClass}
+                    loading="lazy"
+                  />
+                </div>
+              </li>
+            )
+          }
+
+          const popoverId = `${platformPopoverBaseId}-${chipIndex}`
+          const bigIconClass = `h-14 w-14 shrink-0 object-contain sm:h-16 sm:w-16 ${invertOnDarkCard ? 'brightness-0 invert' : ''}`
+          const popoverCoverageNote =
+            'Rough scale of this platform’s global footprint (order-of-magnitude, from public estimates).'
+          const popoverHeading = (
+            <p className="mb-2 text-left text-sm font-bold leading-tight text-zinc-100 sm:text-[15px]">
+              {p.label}
+              {p.vendor != null ? (
+                <span className="font-semibold text-zinc-400"> ({p.vendor})</span>
+              ) : null}
+              {p.deprecated ? (
+                <span className="font-semibold text-zinc-500"> (deprecated)</span>
+              ) : null}
+            </p>
+          )
+          const popoverInner = (
+            <div className="flex items-start gap-3">
+              <img
+                src={src}
+                alt=""
+                width={64}
+                height={64}
+                className={bigIconClass}
+                loading="lazy"
+              />
+              <div className="min-w-0 flex-1 pt-0.5">
+                {popoverHeading}
+                <p className="mb-2 border-b border-zinc-600/60 pb-2 text-left text-[11px] leading-snug text-zinc-500 sm:text-xs">
+                  {popoverCoverageNote}
+                </p>
+                <p className="text-left text-[13px] leading-snug text-zinc-400 sm:text-sm">
+                  {p.popoverBlurb}{' '}
+                  <strong className="font-semibold text-zinc-100">
+                    {p.popoverDevicesBold}
+                  </strong>
+                </p>
+              </div>
+            </div>
+          )
+          const popoverShellClass =
+            'w-[min(18.5rem,calc(100vw-2rem))] rounded-xl border border-zinc-500/50 bg-zinc-900/98 p-3.5 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.75)] ring-1 ring-teal-500/20 backdrop-blur-md'
+
+          if (popoverPlacement === 'inline') {
+            return (
+              <li
+                key={`${p.iconSlug}-${p.label}`}
+                className={`group flex flex-col items-start gap-1.5 ${p.deprecated ? 'opacity-75' : ''}`}
+                tabIndex={0}
+                aria-label={brightSdkPlatformChipAriaLabel(p)}
+                aria-describedby={popoverId}
+              >
+                <span className="sr-only">
+                  {brightSdkPlatformChipAriaLabel(p)}. {popoverCoverageNote}{' '}
+                  {p.popoverBlurb} {p.popoverDevicesBold}
+                </span>
+                <div className={chipClass}>
+                  <img
+                    src={src}
+                    alt=""
+                    width={imgSize}
+                    height={imgSize}
+                    className={imgClass}
+                    loading="lazy"
+                  />
+                </div>
+                <div
+                  id={popoverId}
+                  role="tooltip"
+                  className={`${popoverShellClass} hidden group-hover:block group-focus-within:block`}
+                >
+                  {popoverInner}
+                </div>
+              </li>
+            )
+          }
+
+          return (
+            <li
+              key={`${p.iconSlug}-${p.label}`}
+              className={`group relative ${chipClass} ${p.deprecated ? 'opacity-75' : ''}`}
+              tabIndex={0}
+              aria-label={brightSdkPlatformChipAriaLabel(p)}
+              aria-describedby={popoverId}
+            >
+              <span className="sr-only">
+                {brightSdkPlatformChipAriaLabel(p)}. {popoverCoverageNote}{' '}
+                {p.popoverBlurb} {p.popoverDevicesBold}
+              </span>
+              <img
+                src={src}
+                alt=""
+                width={imgSize}
+                height={imgSize}
+                className={imgClass}
+                loading="lazy"
+              />
+              <div
+                id={popoverId}
+                role="tooltip"
+                className={`pointer-events-none absolute z-[200] ${popoverShellClass} opacity-0 transition-opacity duration-150 group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 bottom-full left-1/2 mb-2 -translate-x-1/2 md:bottom-auto md:left-full md:top-1/2 md:mb-0 md:ml-3 md:-translate-y-1/2 md:translate-x-0`}
+              >
+                {popoverInner}
+              </div>
+            </li>
+          )
+        }
+
+        return (
+          <li
+            key={`${p.iconSlug}-${p.label}`}
+            className={`${chipClass} ${p.deprecated ? 'opacity-75' : ''}`}
+          >
+            <img
+              src={src}
+              alt=""
+              width={20}
+              height={20}
+              className={imgClass}
+              loading="lazy"
+            />
+            <span className="min-w-0 leading-tight">
+              <span className={titleClass}>
+                {p.label}
+                {p.vendor != null ? <span className={metaClass}> ({p.vendor})</span> : null}
+                {p.deprecated ? <span className={metaClass}> (deprecated)</span> : null}
+              </span>
+            </span>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function BrightSdkArticleModal({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
+      role="presentation"
+    >
+      <button
+        type="button"
+        className="absolute inset-0 bg-zinc-950/85 backdrop-blur-[2px] transition-opacity"
+        aria-label="Close article"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bright-sdk-article-title"
+        className="relative z-10 flex max-h-[min(92dvh,880px)] w-full max-w-2xl flex-col rounded-t-2xl border border-stone-300/90 bg-[#f2efe6] shadow-[0_25px_80px_-20px_rgba(0,0,0,0.55)] sm:rounded-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between border-b border-stone-300/80 bg-[#ebe6db] px-4 py-3 sm:px-5">
+          <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-stone-600">
+            Technical brief · informal
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md px-3 py-1.5 font-mono text-xs font-medium text-stone-700 ring-1 ring-stone-400/60 transition hover:bg-stone-200/80"
+          >
+            Close
+          </button>
+        </div>
+        <article className="min-h-0 overflow-y-auto overscroll-contain px-5 py-6 pb-10 font-serif text-[15px] leading-[1.65] text-stone-900 sm:px-8 sm:py-8 sm:text-base sm:leading-relaxed">
+          <header className="border-b border-double border-stone-400 pb-5 text-center">
+            <h2
+              id="bright-sdk-article-title"
+              className="text-xl font-semibold tracking-tight text-stone-900 sm:text-2xl"
+            >
+              Bright SDK: concept and implementation
+            </h2>
+            <p className="mt-2 text-sm italic text-stone-600">
+              What it is, how it sits in the product, and how capacity scales.
+            </p>
+            <p className="mt-3 font-mono text-[11px] text-stone-500">
+              DOI: N/A · companion to projects entry ·{' '}
+              <time dateTime="2026">2026</time>
+            </p>
+          </header>
+
+          <section className="mt-6">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-stone-700">
+              Abstract
+            </h3>
+            <p className="mt-2 border-l-2 border-teal-700/40 pl-3 text-sm italic text-stone-800">
+              Bright SDK is a native software development kit that publishers embed
+              in consumer applications and connected-TV experiences. It provides an
+              additional, consent-based monetization path while a distributed
+              residential network supplies capacity at scale. This note summarizes
+              architecture, observed scale, and platform scope in the style of a
+              short technical article.
+            </p>
+          </section>
+
+          <section className="mt-8">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-stone-700">
+              1. Problem framing
+            </h3>
+            <p className="mt-2 text-stone-800">
+              Free and freemium products need revenue without degrading retention.
+              Classical advertising competes for attention; alternative models must
+              preserve UX, respect policy, and remain operationally transparent.
+              The SDK sits in this design space: optional participation, clear
+              disclosure, and background execution constrained by device resources.
+            </p>
+          </section>
+
+          <section className="mt-8">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-stone-700">
+              2. System topology
+            </h3>
+            <p className="mt-2 text-stone-800">
+              Operationally, traffic flows from the partner binary through the SDK
+              into Bright Data&apos;s network fabric. Control-plane and release
+              mechanics (updates, compatibility, store policies) sit alongside the
+              data path sketched below. Beyond desktop and mobile, work also covered
+              smart-TV stacks—LG webOS and Samsung TizenOS.
+            </p>
+            <figure className="mt-5 rounded-md border border-stone-300 bg-white/60 p-4 shadow-sm">
+              <svg
+                viewBox="0 0 440 120"
+                className="mx-auto h-auto w-full max-w-md text-stone-800"
+                aria-hidden
+              >
+                <defs>
+                  <marker
+                    id="bright-sdk-fig1-arrow"
+                    markerWidth="8"
+                    markerHeight="8"
+                    refX="7"
+                    refY="4"
+                    orient="auto"
+                  >
+                    <path d="M0,0 L8,4 L0,8 Z" fill="currentColor" />
+                  </marker>
+                </defs>
+                <rect
+                  x="8"
+                  y="28"
+                  width="112"
+                  height="64"
+                  rx="6"
+                  fill="#e7e2d8"
+                  stroke="currentColor"
+                  strokeWidth="1.25"
+                />
+                <text x="64" y="58" textAnchor="middle" className="fill-stone-800 font-sans text-[11px] font-semibold">
+                  Partner app
+                </text>
+                <text x="64" y="76" textAnchor="middle" className="fill-stone-600 font-sans text-[9px]">
+                  mobile / desktop / TV
+                </text>
+                <line
+                  x1="124"
+                  y1="60"
+                  x2="168"
+                  y2="60"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  markerEnd="url(#bright-sdk-fig1-arrow)"
+                />
+                <rect
+                  x="172"
+                  y="24"
+                  width="108"
+                  height="72"
+                  rx="6"
+                  fill="#ccfbf1"
+                  stroke="#0d9488"
+                  strokeWidth="1.5"
+                />
+                <text x="226" y="56" textAnchor="middle" className="fill-teal-900 font-sans text-[11px] font-bold">
+                  Bright SDK
+                </text>
+                <text x="226" y="74" textAnchor="middle" className="fill-teal-800 font-sans text-[9px]">
+                  native library
+                </text>
+                <line
+                  x1="284"
+                  y1="60"
+                  x2="328"
+                  y2="60"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  markerEnd="url(#bright-sdk-fig1-arrow)"
+                />
+                <rect
+                  x="332"
+                  y="20"
+                  width="100"
+                  height="80"
+                  rx="6"
+                  fill="#ede9fe"
+                  stroke="#7c3aed"
+                  strokeWidth="1.25"
+                />
+                <text x="382" y="52" textAnchor="middle" className="fill-violet-950 font-sans text-[11px] font-semibold">
+                  Network
+                </text>
+                <text x="382" y="70" textAnchor="middle" className="fill-violet-900 font-sans text-[9px]">
+                  residential IP pool
+                </text>
+                <text x="382" y="88" textAnchor="middle" className="fill-violet-800 font-sans text-[8px]">
+                  routing · policy · ops
+                </text>
+              </svg>
+              <figcaption className="mt-3 text-center font-mono text-[10px] leading-snug text-stone-600">
+                Fig. 1. High-level data path: partner surface → SDK → Bright Data
+                network (schematic, not a literal sequence diagram).
+              </figcaption>
+            </figure>
+          </section>
+
+          <section className="mt-8">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-stone-700">
+              3. Scale (projects context)
+            </h3>
+            <p className="mt-2 text-stone-800">
+              During intensive growth phases, engineering work on the SDK and
+              surrounding platform coincided with residential capacity reaching on
+              the order of{' '}
+              <strong className="font-semibold text-teal-900">~11M</strong> distinct
+              IPs observed per day, over roughly{' '}
+              <strong className="font-semibold text-teal-900">three years</strong>.
+              The chart below encodes only order-of-magnitude intuition, not audited
+              time series.
+            </p>
+            <figure className="mt-5 rounded-md border border-stone-300 bg-white/60 p-4 shadow-sm">
+              <svg
+                viewBox="0 0 360 140"
+                className="mx-auto h-auto w-full max-w-sm"
+                aria-hidden
+              >
+                <text
+                  x="180"
+                  y="18"
+                  textAnchor="middle"
+                  className="fill-stone-700 font-sans text-[10px] font-semibold"
+                >
+                  Order of magnitude (illustrative)
+                </text>
+                <line x1="48" y1="120" x2="320" y2="120" stroke="#78716c" strokeWidth="1" />
+                <rect x="64" y="88" width="44" height="32" fill="#99f6e4" stroke="#0f766e" rx="2" />
+                <text x="86" y="108" textAnchor="middle" className="fill-stone-800 font-mono text-[9px]">
+                  10⁶
+                </text>
+                <rect x="152" y="64" width="44" height="56" fill="#5eead4" stroke="#0f766e" rx="2" />
+                <text x="174" y="98" textAnchor="middle" className="fill-stone-900 font-mono text-[9px]">
+                  10⁷
+                </text>
+                <rect x="240" y="36" width="44" height="84" fill="#14b8a6" stroke="#115e59" rx="2" />
+                <text x="262" y="82" textAnchor="middle" className="fill-white font-mono text-[9px] font-bold">
+                  ~11M
+                </text>
+                <text x="262" y="134" textAnchor="middle" className="fill-stone-600 font-sans text-[8px]">
+                  peak daily IPs (ref.)
+                </text>
+              </svg>
+              <figcaption className="mt-3 text-center font-mono text-[10px] leading-snug text-stone-600">
+                Fig. 2. Stylized magnitude ladder; numeric label reflects projects
+                narrative, not a certified report.
+              </figcaption>
+            </figure>
+          </section>
+
+          <section className="mt-8">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-stone-700">
+              4. Quantitative summary
+            </h3>
+            <div className="mt-3 overflow-x-auto rounded-md border border-stone-300 bg-white/70">
+              <table className="w-full min-w-[280px] border-collapse text-left text-sm">
+                <thead>
+                  <tr className="border-b border-stone-300 bg-stone-200/50 font-sans text-[10px] uppercase tracking-wider text-stone-700">
+                    <th className="px-3 py-2 font-semibold">Quantity</th>
+                    <th className="px-3 py-2 font-semibold">Estimate / note</th>
+                  </tr>
+                </thead>
+                <tbody className="text-stone-800">
+                  <tr className="border-b border-stone-200/80">
+                    <td className="align-top px-3 py-2 font-medium">Native platforms</td>
+                    <td className="px-3 py-2">
+                      <p className="mb-2 text-stone-800">
+                        4 (Android, Amazon, Windows, Apple)
+                      </p>
+                      <BrightSdkPlatformChips
+                        platforms={brightSdkNativePlatforms}
+                        theme="article"
+                        ariaLabel="Bright SDK native platforms"
+                      />
+                    </td>
+                  </tr>
+                  <tr className="border-b border-stone-200/80">
+                    <td className="align-top px-3 py-2 font-medium">
+                      TV &amp; OTT platforms
+                    </td>
+                    <td className="px-3 py-2">
+                      <p className="mb-2 text-stone-800">
+                        Additional targets beyond the four native platforms above.
+                      </p>
+                      <BrightSdkPlatformChips
+                        platforms={brightSdkTvPlatforms}
+                        theme="article"
+                        ariaLabel="Bright SDK TV and OTT platforms"
+                      />
+                    </td>
+                  </tr>
+                  <tr className="border-b border-stone-200/80">
+                    <td className="px-3 py-2 font-medium">Residential IPs / day</td>
+                    <td className="px-3 py-2">up to ~11M at peak (projects)</td>
+                  </tr>
+                  <tr className="border-b border-stone-200/80">
+                    <td className="px-3 py-2 font-medium">Horizon</td>
+                    <td className="px-3 py-2">~3 years of scaling narrative</td>
+                  </tr>
+                  <tr>
+                    <td className="px-3 py-2 font-medium">Disclosure model</td>
+                    <td className="px-3 py-2">Opt-in UX; policy-aligned stores</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section className="mt-8 border-t border-stone-300 pt-5">
+            <h3 className="font-sans text-xs font-bold uppercase tracking-widest text-stone-700">
+              References
+            </h3>
+            <ol className="mt-2 list-decimal space-y-1 pl-5 font-mono text-xs text-stone-700">
+              <li>
+                Bright SDK product site:{' '}
+                <a
+                  href={BRIGHT_SDK_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="break-all text-teal-800 underline decoration-teal-600/50 underline-offset-2 hover:text-teal-950"
+                >
+                  {BRIGHT_SDK_URL}
+                </a>
+              </li>
+            </ol>
+          </section>
+        </article>
+      </div>
+    </div>
+  )
+}
 
 /** Simple mark for NDA role — medical / health articles theme */
 const PRIVATE_COMPANY_LOGO = `${import.meta.env.BASE_URL}private-company-medical-logo.svg`
@@ -222,6 +1103,7 @@ const experience = [
       readable: true,
       noBackground: true,
       hotlink: true,
+      logoScale: 2,
     },
     role: 'Software Engineer → Technical Account Manager → R&D Team Leader',
     period: 'Nov 2018 — Present',
@@ -374,6 +1256,171 @@ function MailIcon({ className }: { className?: string }) {
   )
 }
 
+function BookOpenIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  )
+}
+
+function ExternalLinkIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  )
+}
+
+function ListIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <line x1="8" y1="6" x2="21" y2="6" />
+      <line x1="8" y1="12" x2="21" y2="12" />
+      <line x1="8" y1="18" x2="21" y2="18" />
+      <line x1="3" y1="6" x2="3.01" y2="6" />
+      <line x1="3" y1="12" x2="3.01" y2="12" />
+      <line x1="3" y1="18" x2="3.01" y2="18" />
+    </svg>
+  )
+}
+
+function BrightSdkIntegrationUtilitiesModal({
+  open,
+  onClose,
+}: {
+  open: boolean
+  onClose: () => void
+}) {
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prev
+    }
+  }, [open, onClose])
+
+  if (!open) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
+      role="presentation"
+    >
+      <button
+        type="button"
+        className="absolute inset-0 bg-zinc-950/85 backdrop-blur-[2px] transition-opacity"
+        aria-label="Close repository list"
+        onClick={onClose}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bright-sdk-integration-utilities-title"
+        className="relative z-10 flex max-h-[min(92dvh,720px)] w-full max-w-lg flex-col rounded-t-2xl border border-white/[0.1] bg-zinc-900/95 shadow-[0_25px_80px_-20px_rgba(0,0,0,0.55)] ring-1 ring-teal-500/10 sm:max-w-xl sm:rounded-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/[0.08] px-4 py-3 sm:px-5">
+          <div className="min-w-0">
+            <h2
+              id="bright-sdk-integration-utilities-title"
+              className="text-base font-semibold tracking-tight text-zinc-100 sm:text-lg"
+            >
+              BrightSDK integration utilities
+            </h2>
+            <p className="mt-0.5 font-mono text-[10px] text-zinc-500 sm:text-[11px]">
+              Public repos on GitHub · short descriptions
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="shrink-0 rounded-lg px-3 py-1.5 font-mono text-xs font-medium text-zinc-300 ring-1 ring-zinc-600 transition hover:bg-zinc-800 hover:text-zinc-100"
+          >
+            Close
+          </button>
+        </div>
+        <ul className="min-h-0 list-none overflow-y-auto overscroll-contain px-4 py-2 sm:px-5">
+          {brightSdkIntegrationUtilityRepos.map((repo) => (
+            <li
+              key={repo.slug}
+              className="border-b border-white/[0.06] py-3.5 last:border-b-0"
+            >
+              <a
+                href={`https://github.com/BrightSDK/${repo.slug}`}
+                target="_blank"
+                rel="noreferrer"
+                className="font-mono text-[13px] text-teal-300 underline decoration-teal-500/30 underline-offset-2 transition hover:text-teal-200 hover:decoration-teal-400/50"
+              >
+                {repo.slug}
+              </a>
+              <p className="mt-1.5 text-pretty text-sm leading-relaxed text-zinc-400">
+                {repo.description}
+              </p>
+              <BrightSdkPlatformChips
+                platforms={repo.platforms}
+                theme="card"
+                iconsOnly
+                showIconPopovers={false}
+                className="mt-2.5"
+                ariaLabel={`Target platforms for ${repo.slug}`}
+              />
+            </li>
+          ))}
+        </ul>
+        <div className="shrink-0 border-t border-white/[0.08] px-4 py-3 sm:px-5">
+          <a
+            href={BRIGHT_SDK_ORG_URL}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 text-sm font-medium text-teal-300/95 transition hover:text-teal-200"
+          >
+            <GitHubIcon className="h-4 w-4 shrink-0 opacity-90" />
+            <span>View organization on GitHub</span>
+            <ExternalLinkIcon className="h-3.5 w-3.5 shrink-0 opacity-70" />
+          </a>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const contactIconBtnClass =
   'inline-flex items-center justify-center rounded-lg p-1.5 text-zinc-400 ring-1 ring-zinc-700 transition hover:bg-white/5 hover:text-teal-300 sm:p-2'
 
@@ -392,6 +1439,8 @@ type CompanyBrand =
       readable?: boolean
       /** Third-party image URLs that block cross-site Referer */
       hotlink?: boolean
+      /** Experience timeline: multiply default image logo dimensions (e.g. 2 = double) */
+      logoScale?: 2
     }
 
 function CompanyBrandMark({ brand }: { brand: CompanyBrand }) {
@@ -407,11 +1456,18 @@ function CompanyBrandMark({ brand }: { brand: CompanyBrand }) {
     )
   }
   if (brand.kind === 'image') {
+    const scale = brand.logoScale === 2 ? 2 : 1
     const sizeClass = brand.readable
-      ? 'h-8 max-w-[min(100%,10rem)] sm:h-9 sm:max-w-[13rem]'
+      ? scale === 2
+        ? 'h-16 max-w-[min(100%,20rem)] sm:h-[4.5rem] sm:max-w-[26rem]'
+        : 'h-8 max-w-[min(100%,10rem)] sm:h-9 sm:max-w-[13rem]'
       : brand.wide
-        ? 'h-6 max-w-[min(100%,7.5rem)] sm:h-7 sm:max-w-[9rem]'
-        : 'h-5 max-w-[5.5rem]'
+        ? scale === 2
+          ? 'h-12 max-w-[min(100%,15rem)] sm:h-14 sm:max-w-[18rem]'
+          : 'h-6 max-w-[min(100%,7.5rem)] sm:h-7 sm:max-w-[9rem]'
+        : scale === 2
+          ? 'h-10 max-w-[11rem]'
+          : 'h-5 max-w-[5.5rem]'
     const img = (
       <img
         src={brand.src}
@@ -499,6 +1555,15 @@ function TechLogoStrip() {
 }
 
 export default function App() {
+  const [brightSdkArticleOpen, setBrightSdkArticleOpen] = useState(false)
+  const closeBrightSdkArticle = useCallback(() => setBrightSdkArticleOpen(false), [])
+  const [brightSdkIntegrationUtilitiesOpen, setBrightSdkIntegrationUtilitiesOpen] =
+    useState(false)
+  const closeBrightSdkIntegrationUtilities = useCallback(
+    () => setBrightSdkIntegrationUtilitiesOpen(false),
+    []
+  )
+
   return (
     <div className="page-bg min-h-svh min-w-0 overflow-x-clip">
       <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-gradient-to-b from-violet-950/[0.16] via-zinc-950/80 to-zinc-950/90 pt-[env(safe-area-inset-top,0px)] shadow-[0_12px_40px_-18px_rgba(0,0,0,0.4)] backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/75">
@@ -743,12 +1808,20 @@ export default function App() {
                     <div className="flex min-w-0 items-start gap-3">
                       <CompanyBrandMark brand={job.brand} />
                       <div className="min-w-0">
-                        <h3 className="text-base font-semibold tracking-tight text-zinc-100 break-words md:text-lg">
-                          {job.company}
-                        </h3>
-                        <p className="mt-0.5 text-pretty break-words text-zinc-400">
-                          {job.role}
-                        </p>
+                        {job.company === 'Private company' ? (
+                          <>
+                            <h3 className="text-base font-semibold tracking-tight text-zinc-100 break-words md:text-lg">
+                              {job.company}
+                            </h3>
+                            <p className="mt-0.5 text-pretty break-words text-zinc-400">
+                              {job.role}
+                            </p>
+                          </>
+                        ) : (
+                          <h3 className="text-base font-semibold tracking-tight text-zinc-100 break-words md:text-lg">
+                            {job.role}
+                          </h3>
+                        )}
                       </div>
                     </div>
                     <p className="shrink-0 text-[11px] text-zinc-500 sm:text-xs sm:text-right md:text-sm">
@@ -782,38 +1855,150 @@ export default function App() {
 
         <section className="border-t border-white/[0.06] bg-gradient-to-b from-zinc-950/40 to-transparent">
           <div className="mx-auto max-w-5xl px-4 py-14 sm:px-5 sm:py-16 md:px-8 md:py-24">
-            <SectionTitle id="projects" eyebrow="Highlights" title="Key projects" />
-            <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
+            <SectionTitle id="projects" eyebrow="Work" title="Projects" />
+            <div className="flex flex-col gap-6 sm:gap-8">
               <article className="rounded-xl border border-white/[0.08] bg-gradient-to-br from-zinc-900/45 to-zinc-950/95 p-5 shadow-[0_0_50px_-20px_rgba(45,212,191,0.12)] ring-1 ring-teal-500/15 sm:p-6 md:p-8">
-                <div className="flex flex-wrap items-center gap-3">
-                  <img
-                    src={BRIGHT_SDK_ICON}
-                    alt="Bright SDK"
-                    className="h-9 w-auto max-w-[min(100%,14rem)] shrink-0 object-contain object-left"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
-                  <h3 className="text-lg font-semibold text-zinc-100">
-                    Bright SDK
-                  </h3>
+                <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-10">
+                  <div className="flex w-full shrink-0 flex-col gap-3 md:max-w-[min(100%,18rem)]">
+                    <img
+                      src={BRIGHT_SDK_ICON}
+                      alt="Bright SDK"
+                      title="Bright SDK — official wordmark"
+                      className="h-10 w-auto max-w-[min(100%,16rem)] object-contain object-left sm:h-11"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="flex flex-col gap-y-1.5">
+                      <BrightSdkPlatformChips
+                        platforms={brightSdkNativePlatforms}
+                        theme="card"
+                        iconsOnly
+                        iconsOnlyFourCols
+                        ariaLabel="Bright SDK native platforms"
+                      />
+                      <BrightSdkPlatformChips
+                        platforms={brightSdkTvPlatforms}
+                        theme="card"
+                        iconsOnly
+                        iconsOnlyFourCols
+                        ariaLabel="Bright SDK TV and OTT platforms"
+                      />
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold text-zinc-100 sm:text-xl">
+                        Bright SDK
+                      </h3>
+                      <span className="rounded-md bg-teal-500/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-teal-200/90 ring-1 ring-teal-400/25">
+                        Featured
+                      </span>
+                    </div>
+                    <p className="mt-2 font-mono text-xs text-zinc-500">
+                      Bright Data · Android, Amazon, Windows, Apple · SDK & platform
+                      integration
+                    </p>
+                    <p className="mt-4 text-base leading-relaxed text-zinc-400">
+                      Multi-platform SDK that brings Bright Data’s network and
+                      tooling into partner apps and devices—shipping native
+                      clients, release pipelines, and reliability work end to end.
+                      TV-class stacks included LG webOS and Samsung TizenOS.
+                    </p>
+                    <p className="mt-3 text-sm leading-relaxed text-teal-300/90">
+                      Helped scale the residential proxy network to up to ~11M
+                      daily IPs within three years.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setBrightSdkArticleOpen(true)}
+                        aria-haspopup="dialog"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-800/80 px-4 py-2.5 text-sm font-medium text-zinc-200 ring-1 ring-zinc-600/80 transition hover:bg-zinc-800 hover:ring-zinc-500/50"
+                      >
+                        <BookOpenIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+                        More
+                      </button>
+                      <a
+                        href={BRIGHT_SDK_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-500/15 px-4 py-2.5 text-sm font-medium text-teal-200 ring-1 ring-teal-400/40 transition hover:bg-teal-500/25 hover:ring-teal-400/55"
+                      >
+                        <ExternalLinkIcon className="h-4 w-4 shrink-0 text-teal-400/90" />
+                        Website
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-1 font-mono text-xs text-zinc-500">
-                  Bright Data · Android, macOS, iOS, Windows
-                </p>
-                <p className="mt-4 text-zinc-400">
-                  Multi-platform SDK integrating Bright Data capabilities into
-                  partner products.
-                </p>
-                <p className="mt-3 text-sm text-teal-300/90">
-                  Helped scale the residential proxy network to up to ~11M daily
-                  IPs within three years.
-                </p>
               </article>
+
+              <article className="rounded-xl border border-white/[0.08] bg-gradient-to-br from-zinc-900/45 to-zinc-950/95 p-5 shadow-[0_0_50px_-20px_rgba(45,212,191,0.1)] ring-1 ring-teal-500/12 sm:p-6 md:p-8">
+                <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-10">
+                  <div className="flex w-full shrink-0 flex-col gap-3 md:max-w-[min(100%,18rem)]">
+                    <img
+                      src={BRIGHT_SDK_ICON}
+                      alt="Bright SDK"
+                      title="Bright SDK — official wordmark"
+                      className="h-10 w-auto max-w-[min(100%,16rem)] object-contain object-left sm:h-11"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                    <BrightSdkPlatformChips
+                      platforms={brightSdkIntegrationUtilityCardPlatforms}
+                      theme="card"
+                      iconsOnly
+                      iconsOnlyFourCols
+                      ariaLabel="BrightSDK integration utilities — platforms and tooling"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg font-semibold text-zinc-100 sm:text-xl">
+                        BrightSDK integration utilities
+                      </h3>
+                      <span className="rounded-md bg-zinc-500/15 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-zinc-300/90 ring-1 ring-zinc-500/30">
+                        Open source
+                      </span>
+                    </div>
+                    <p className="mt-2 font-mono text-xs text-zinc-500">
+                      BrightSDK on GitHub · integration samples, native plugins,
+                      and partner tooling
+                    </p>
+                    <p className="mt-4 text-base leading-relaxed text-zinc-400">
+                      Public repositories that support SDK adoption: platform
+                      samples (Unity, React Native, web), distribution packages,
+                      and consent UX helpers for partners.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setBrightSdkIntegrationUtilitiesOpen(true)}
+                        aria-haspopup="dialog"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-zinc-800/80 px-4 py-2.5 text-sm font-medium text-zinc-200 ring-1 ring-zinc-600/80 transition hover:bg-zinc-800 hover:ring-zinc-500/50"
+                      >
+                        <ListIcon className="h-4 w-4 shrink-0 text-zinc-400" />
+                        More
+                      </button>
+                      <a
+                        href={BRIGHT_SDK_ORG_URL}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-500/15 px-4 py-2.5 text-sm font-medium text-teal-200 ring-1 ring-teal-400/40 transition hover:bg-teal-500/25 hover:ring-teal-400/55"
+                      >
+                        <GitHubIcon className="h-4 w-4 shrink-0 text-teal-400/90" />
+                        Website
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </article>
+
               <article className="rounded-xl border border-white/[0.08] bg-gradient-to-br from-zinc-900/45 to-zinc-950/95 p-5 shadow-[0_0_50px_-20px_rgba(139,92,246,0.1)] ring-1 ring-violet-500/15 sm:p-6 md:p-8">
                 <div className="flex flex-wrap items-center gap-3">
                   <img
                     src={PRIVATE_COMPANY_LOGO}
                     alt="Medical articles platform"
+                    title="Medical articles platform (NDA)"
                     className="h-9 w-9 shrink-0 object-contain object-left"
                     width={36}
                     height={36}
@@ -953,6 +2138,12 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      <BrightSdkArticleModal open={brightSdkArticleOpen} onClose={closeBrightSdkArticle} />
+      <BrightSdkIntegrationUtilitiesModal
+        open={brightSdkIntegrationUtilitiesOpen}
+        onClose={closeBrightSdkIntegrationUtilities}
+      />
     </div>
   )
 }
