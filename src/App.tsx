@@ -19,8 +19,8 @@ const CONTACT_EMAIL = 'v0538276702@gmail.com'
 const WHATSAPP_URL = 'https://wa.me/972538276702'
 
 const ORITHMIC_MARK = `${import.meta.env.BASE_URL}orithmic-mark.svg`
-/** Orithmic Software on GitHub */
-const ORITHMIC_ORG_URL = 'https://github.com/OrithmicSoftware'
+/** GitHub account for this portfolio / org link */
+const ORITHMIC_ORG_URL = 'https://github.com/Pun4drunk'
 
 function OrithmicLogoImg({
   className,

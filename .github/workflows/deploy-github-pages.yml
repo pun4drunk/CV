@@ -25,7 +25,7 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
-      # Publishes to branch gh-pages → https://orithmicsoftware.github.io/profile/
+      # Publishes to branch gh-pages → https://pun4drunk.github.io/sample-project/
       - name: Push dist to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:

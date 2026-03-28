@@ -1,25 +1,25 @@
-# Profile — portfolio site
+# Portfolio site
 
-[![CI](https://github.com/OrithmicSoftware/profile/actions/workflows/ci.yml/badge.svg)](https://github.com/OrithmicSoftware/profile/actions/workflows/ci.yml)
-[![Pages](https://github.com/OrithmicSoftware/profile/actions/workflows/deploy-github-pages.yml/badge.svg)](https://github.com/OrithmicSoftware/profile/actions/workflows/deploy-github-pages.yml)
-[![Labels](https://github.com/OrithmicSoftware/profile/actions/workflows/sync-labels.yml/badge.svg)](https://github.com/OrithmicSoftware/profile/actions/workflows/sync-labels.yml)
+[![CI](https://github.com/Pun4drunk/sample-project/actions/workflows/ci.yml/badge.svg)](https://github.com/Pun4drunk/sample-project/actions/workflows/ci.yml)
+[![Pages](https://github.com/Pun4drunk/sample-project/actions/workflows/deploy-github-pages.yml/badge.svg)](https://github.com/Pun4drunk/sample-project/actions/workflows/deploy-github-pages.yml)
+[![Labels](https://github.com/Pun4drunk/sample-project/actions/workflows/sync-labels.yml/badge.svg)](https://github.com/Pun4drunk/sample-project/actions/workflows/sync-labels.yml)
 
 Single-page résumé and portfolio for **Vladislav Sokolov** (software architect & technical lead), built with **React**, **TypeScript**, **Vite**, and **Tailwind CSS**.
 
-**Repository:** [github.com/OrithmicSoftware/profile](https://github.com/OrithmicSoftware/profile) (under org [OrithmicSoftware](https://github.com/OrithmicSoftware)).
+**Repository:** [github.com/Pun4drunk/sample-project](https://github.com/Pun4drunk/sample-project) ([Pun4drunk](https://github.com/Pun4drunk) on GitHub).
 
-**Live site (project Pages):** **[https://orithmicsoftware.github.io/profile/](https://orithmicsoftware.github.io/profile/)**
+**Live site (project Pages):** **[https://pun4drunk.github.io/sample-project/](https://pun4drunk.github.io/sample-project/)**
 
 ### Turn on the correct Pages URL
 
-Your app is built with **`base: '/profile/'`** so it only works at that path under the org’s GitHub Pages host (repo name = `profile`).
+Your app is built with **`base: '/sample-project/'`** so it only works at that path under the account’s GitHub Pages host (repo name = `sample-project`).
 
-1. **Org Actions (if deploy fails):** [OrithmicSoftware organization settings](https://github.com/organizations/OrithmicSoftware/settings/actions) → **General** → allow **Actions**, and set **Workflow permissions** to **Read and write** (needed to push the `gh-pages` branch).
+1. **Actions (if deploy fails):** [sample-project → Settings → Actions](https://github.com/Pun4drunk/sample-project/settings/actions) → **General** → allow **Actions**, and set **Workflow permissions** to **Read and write** (needed to push the `gh-pages` branch).
 2. **Run deploy:** push to `main` or open **Actions → Deploy to GitHub Pages → Run workflow**. Wait until it finishes and the `gh-pages` branch exists.
-3. **Point Pages at `gh-pages`:** In [profile → Settings → Pages](https://github.com/OrithmicSoftware/profile/settings/pages):
+3. **Point Pages at `gh-pages`:** In [sample-project → Settings → Pages](https://github.com/Pun4drunk/sample-project/settings/pages):
    - **Build and deployment** → **Source:** *Deploy from a branch*
    - **Branch:** `gh-pages` / **/(root)** → Save  
-4. After a short wait, the site should load at **`https://orithmicsoftware.github.io/profile/`** (not `pun4drunk.github.io` and not `/CV/` — those are old hosts/paths).
+4. After a short wait, the site should load at **`https://pun4drunk.github.io/sample-project/`**.
 
 **Preview like production Pages:** `npm run preview:pages`
 
@@ -28,9 +28,9 @@ Your app is built with **`base: '/profile/'`** so it only works at that path und
 | Command | Description |
 |--------|-------------|
 | `npm run dev` | Local dev server |
-| `npm run build` | Typecheck + production build (`/profile/` base for Pages) |
+| `npm run build` | Typecheck + production build (`/sample-project/` base for Pages) |
 | `npm run preview` | Preview production build locally (`/` base) |
-| `npm run preview:pages` | Build + preview with **`/profile/`** base (same as GitHub Pages) |
+| `npm run preview:pages` | Build + preview with **`/sample-project/`** base (same as GitHub Pages) |
 | `npm run lint` | ESLint (warnings fail) |
 | `npm run lint:fix` | ESLint with `--fix` |
 | `npm run typecheck` | `tsc -b --noEmit` |
@@ -38,9 +38,9 @@ Your app is built with **`base: '/profile/'`** so it only works at that path und
 
 ## GitHub Pages
 
-- **Public URL:** `https://orithmicsoftware.github.io/profile/`
+- **Public URL:** `https://pun4drunk.github.io/sample-project/`
 - **Source:** branch **`gh-pages`**, folder **`/` (root)** — content is published by [`.github/workflows/deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) (lint, typecheck, `npm run build`, then [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages) pushes `dist/`).
-- **Base path:** [`vite.config.ts`](vite.config.ts) uses `base: '/profile/'` in production. If you **rename the repository**, change `base` to `'/<new-repo-name>/'`.
+- **Base path:** [`vite.config.ts`](vite.config.ts) uses `base: '/sample-project/'` in production. If you **rename the repository**, change `base` to `'/<new-repo-name>/'`.
 
 ## CI
 

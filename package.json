@@ -1,5 +1,5 @@
 {
-  "name": "profile",
+  "name": "sample-project",
   "private": true,
   "version": "1.3.1",
   "type": "module",
@@ -11,7 +11,7 @@
     "typecheck": "tsc -b --noEmit",
     "check": "npm run lint && npm run typecheck && npm run build",
     "preview": "vite preview",
-    "preview:pages": "npm run build && vite preview --base /profile/"
+    "preview:pages": "npm run build && vite preview --base /sample-project/"
   },
   "dependencies": {
     "react": "^19.2.4",
