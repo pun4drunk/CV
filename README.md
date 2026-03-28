@@ -28,7 +28,7 @@ Your app is built with **`base: '/sample-project/'`** so it only works at that p
 | Command | Description |
 |--------|-------------|
 | `npm run dev` | Local dev server |
-| `npm run build` | Typecheck + production build (`/sample-project/` base for Pages) |
+| `npm run build` | Typecheck + production build (default `/sample-project/` base; CI uses repo name) |
 | `npm run preview` | Preview production build locally (`/` base) |
 | `npm run preview:pages` | Build + preview with **`/sample-project/`** base (same as GitHub Pages) |
 | `npm run lint` | ESLint (warnings fail) |
@@ -40,7 +40,7 @@ Your app is built with **`base: '/sample-project/'`** so it only works at that p
 
 - **Public URL:** `https://pun4drunk.github.io/sample-project/`
 - **Source:** branch **`gh-pages`**, folder **`/` (root)** — content is published by [`.github/workflows/deploy-github-pages.yml`](.github/workflows/deploy-github-pages.yml) (lint, typecheck, `npm run build`, then [peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages) pushes `dist/`).
-- **Base path:** [`vite.config.ts`](vite.config.ts) uses `base: '/sample-project/'` in production. If you **rename the repository**, change `base` to `'/<new-repo-name>/'`.
+- **Base path:** [`vite.config.ts`](vite.config.ts) uses `/<repository-name>/` in CI (via `VITE_BASE_PATH`). Local `npm run build` defaults to `/sample-project/`; override with `VITE_BASE_PATH=/profile/ npm run build` if your clone’s repo name differs.
 
 ## CI
 

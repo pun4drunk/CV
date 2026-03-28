@@ -3,8 +3,18 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-// Production builds use /sample-project/ for GitHub Pages at https://pun4drunk.github.io/sample-project/
+// GitHub Pages path = repository name. CI sets VITE_BASE_PATH=/repo-name/; local
+// `npm run build` defaults to /sample-project/ (see README).
+function pagesBaseFromEnv(): string {
+  const raw = process.env.VITE_BASE_PATH?.trim()
+  if (raw) {
+    const withSlash = raw.startsWith('/') ? raw : `/${raw}`
+    return withSlash.endsWith('/') ? withSlash : `${withSlash}/`
+  }
+  return '/sample-project/'
+}
+
 export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/sample-project/' : '/',
+  base: mode === 'production' ? pagesBaseFromEnv() : '/',
   plugins: [react(), tailwindcss()],
 }))
