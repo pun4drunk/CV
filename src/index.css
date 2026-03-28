@@ -97,3 +97,26 @@ body {
     animation: none;
   }
 }
+
+@keyframes skills-tag-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -5px, 0);
+  }
+}
+
+.skills-tag-float {
+  animation-name: skills-tag-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skills-tag-float {
+    animation: none;
+  }
+}

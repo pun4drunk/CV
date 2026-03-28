@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 const navLinks = [
   { href: '#about', label: 'About' },
   { href: '#stack', label: 'Stack' },
@@ -8,8 +10,13 @@ const navLinks = [
 ] as const
 
 const LINKEDIN_URL = 'https://www.linkedin.com/in/vladislavsss'
-/** Corporate / org GitHub profile */
-const GITHUB_CORPORATE_URL = 'https://github.com/vladislavs-luminati'
+/** GitHub profile */
+const GITHUB_URL = 'https://github.com/vladislavs-luminati'
+
+const CONTACT_EMAIL = 'v0538276702@gmail.com'
+
+/** WhatsApp chat — same number as +972 53-827-6702 */
+const WHATSAPP_URL = 'https://wa.me/972538276702'
 
 /** Brand-colored logos — cdn.simpleicons.org (slug+hex); `src` overrides when CDN slug 404s */
 const stackLogos = [
@@ -69,9 +76,17 @@ const skillGroups = [
   },
 ] as const
 
-/** Employer / product marks (official assets) */
+/** Bright Data mark (hotlinked; may break if the host changes policy) */
 const BRIGHT_DATA_LOGO =
-  'data:image/png;base64,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'
+  'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRT9Hi3kkQHcEa1hdjOmUf0i17FG3WBI-YklQ&s'
+
+/** Official Bright SDK wordmark (light variant for dark UI) */
+const BRIGHT_SDK_ICON =
+  'https://media.bright-sdk.com/2025/12/brightsdk_logo_light.svg'
+
+/** Simple mark for NDA role — medical / health articles theme */
+const PRIVATE_COMPANY_LOGO = `${import.meta.env.BASE_URL}private-company-medical-logo.svg`
+
 const HOLA_LOGO =
   'https://cdn4.hola.org/www/hola/pub/img/hola_logo_letters.svg?ver=1.251.541'
 const SPIRAL_LOGO =
@@ -89,6 +104,90 @@ const skillChipClass: Record<
   rose: 'bg-rose-500/15 text-rose-100 ring-1 ring-rose-400/25',
 }
 
+/** Stable hash for deterministic tag sizing / order (article-style keyword cloud). */
+function skillTagHash(s: string): number {
+  let h = 2166136261
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+const skillTagSizeClass = [
+  'px-2 py-0.5 text-[11px] leading-tight',
+  'px-2.5 py-1 text-xs',
+  'px-3 py-1 text-sm',
+  'px-3.5 py-1.5 text-base font-semibold tracking-tight',
+] as const
+
+function SkillsTagCloud() {
+  const [activeKey, setActiveKey] = useState<string | null>(null)
+
+  const tags = skillGroups.flatMap((g, gi) =>
+    g.items.map((item) => {
+      const key = `${g.title}:${item}`
+      const h = skillTagHash(key)
+      return {
+        key,
+        item,
+        variant: g.variant,
+        sizeIdx: (skillTagHash(`${g.title}\0${item}`) + gi * 17) % 4,
+        sortKey: skillTagHash(item),
+        floatDelayS: (h % 90) / 10,
+        floatDurationS: 9 + (h % 5),
+      }
+    }),
+  )
+  tags.sort((a, b) => a.sortKey - b.sortKey)
+
+  return (
+    <div
+      className="rounded-2xl border border-white/[0.07] bg-zinc-950/40 p-5 md:p-8"
+      onPointerLeave={() => setActiveKey(null)}
+    >
+      <ul
+        className="flex flex-wrap content-start justify-center gap-x-1.5 gap-y-2 md:gap-x-2 md:gap-y-2.5"
+        aria-label="Skills keyword cloud"
+      >
+        {tags.map(
+          ({ key, item, variant, sizeIdx, floatDelayS, floatDurationS }) => {
+            const isActive = activeKey === key
+            const dimOthers = activeKey !== null && !isActive
+            return (
+              <li
+                key={key}
+                className="skills-tag-float inline-block will-change-transform"
+                style={{
+                  animationDuration: `${floatDurationS}s`,
+                  animationDelay: `${floatDelayS}s`,
+                }}
+              >
+                <span
+                  onPointerEnter={() => setActiveKey(key)}
+                  className={[
+                    'inline-block cursor-default rounded-full font-mono',
+                    'transition-[transform,opacity,filter] duration-300 ease-out',
+                    skillTagSizeClass[sizeIdx],
+                    skillChipClass[variant],
+                    isActive
+                      ? 'relative z-10 scale-[1.28] brightness-125 shadow-[0_0_28px_-2px_rgba(45,212,191,0.55)]'
+                      : dimOthers
+                        ? 'scale-[0.78] opacity-50 saturate-50'
+                        : 'scale-100 opacity-100 saturate-100',
+                  ].join(' ')}
+                >
+                  {item}
+                </span>
+              </li>
+            )
+          },
+        )}
+      </ul>
+    </div>
+  )
+}
+
 const experience = [
   {
     company: 'Bright Data',
@@ -97,7 +196,9 @@ const experience = [
       src: BRIGHT_DATA_LOGO,
       alt: 'Bright Data',
       wide: true,
+      readable: true,
       noBackground: true,
+      hotlink: true,
     },
     role: 'Software Engineer → Technical Account Manager → R&D Team Leader',
     period: 'Nov 2018 — Present',
@@ -131,9 +232,11 @@ const experience = [
   {
     company: 'Private company',
     brand: {
-      kind: 'initials' as const,
-      text: 'PC',
-      className: 'bg-violet-950/85 text-violet-200 ring-violet-400/35',
+      kind: 'image' as const,
+      src: PRIVATE_COMPANY_LOGO,
+      alt: 'Medical articles platform',
+      wide: true,
+      noBackground: true,
     },
     role: 'Growth Team Leader',
     period: '2016 — 2019',
@@ -222,6 +325,35 @@ function GitHubIcon({ className }: { className?: string }) {
   )
 }
 
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+    </svg>
+  )
+}
+
+function MailIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <polyline points="22,6 12,13 2,6" />
+    </svg>
+  )
+}
+
+const contactIconBtnClass =
+  'inline-flex items-center justify-center rounded-lg p-2 text-zinc-400 ring-1 ring-zinc-700 transition hover:bg-white/5 hover:text-teal-300'
+
 type CompanyBrand =
   | { kind: 'icon'; slug: string; color: string }
   | { kind: 'initials'; text: string; className: string }
@@ -235,6 +367,8 @@ type CompanyBrand =
       wide?: boolean
       /** Larger mark when using noBackground or chip */
       readable?: boolean
+      /** Third-party image URLs that block cross-site Referer */
+      hotlink?: boolean
     }
 
 function CompanyBrandMark({ brand }: { brand: CompanyBrand }) {
@@ -261,25 +395,16 @@ function CompanyBrandMark({ brand }: { brand: CompanyBrand }) {
         alt={brand.alt}
         className={`w-auto shrink-0 object-contain object-left ${sizeClass}`}
         loading="lazy"
+        referrerPolicy={brand.hotlink ? 'no-referrer' : undefined}
       />
     )
     if (brand.noBackground) {
-      return (
-        <span
-          className={
-            brand.alt === 'Bright Data' || brand.alt === 'Spiral Solutions'
-              ? 'inline-flex items-center rounded-sm ring-1 ring-white/20'
-              : 'inline-flex items-center'
-          }
-        >
-          {img}
-        </span>
-      )
+      return <span className="inline-flex items-center">{img}</span>
     }
     if (brand.onLight) {
       return (
         <div
-          className={`flex shrink-0 items-center rounded-md bg-white px-2 py-0.5 ring-1 ring-black/10 ${brand.wide ? 'min-h-8' : 'h-7'}`}
+          className={`flex shrink-0 items-center rounded-md bg-white px-2 py-0.5 ring-1 ring-black/10 ${brand.readable ? 'min-h-9' : brand.wide ? 'min-h-8' : 'h-7'}`}
         >
           {img}
         </div>
@@ -353,8 +478,8 @@ function TechLogoStrip() {
 export default function App() {
   return (
     <div className="page-bg min-h-svh">
-      <header className="sticky top-0 z-50 border-b border-white/[0.06] bg-[var(--color-surface)]/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-5 py-4 md:px-8 lg:justify-between lg:gap-4">
+      <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-gradient-to-b from-violet-950/[0.16] via-zinc-950/80 to-zinc-950/90 shadow-[0_12px_40px_-18px_rgba(0,0,0,0.4)] backdrop-blur-xl supports-[backdrop-filter]:bg-zinc-950/75">
+        <div className="relative mx-auto flex max-w-5xl items-center gap-3 px-5 py-4 md:px-8 lg:justify-between lg:gap-4">
           <a
             href="#top"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500/25 via-zinc-800/50 to-violet-600/25 font-mono text-sm font-semibold tracking-tight text-zinc-100 ring-1 ring-white/10 transition hover:ring-teal-400/30"
@@ -386,22 +511,38 @@ export default function App() {
               </a>
             ))}
           </nav>
-          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className={contactIconBtnClass}
+              aria-label={`Email ${CONTACT_EMAIL}`}
+            >
+              <MailIcon className="h-5 w-5" />
+            </a>
+            <a
+              href={WHATSAPP_URL}
+              target="_blank"
+              rel="noreferrer"
+              className={contactIconBtnClass}
+              aria-label="WhatsApp"
+            >
+              <WhatsAppIcon className="h-5 w-5" />
+            </a>
             <a
               href={LINKEDIN_URL}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-teal-300"
+              className={contactIconBtnClass}
               aria-label="LinkedIn"
             >
               <LinkedInIcon className="h-5 w-5" />
             </a>
             <a
-              href={GITHUB_CORPORATE_URL}
+              href={GITHUB_URL}
               target="_blank"
               rel="noreferrer"
-              className="rounded-lg p-2 text-zinc-400 transition-colors hover:bg-white/5 hover:text-teal-300"
-              aria-label="Corporate GitHub (vladislavs-luminati)"
+              className={contactIconBtnClass}
+              aria-label="GitHub"
             >
               <GitHubIcon className="h-5 w-5" />
             </a>
@@ -439,45 +580,59 @@ export default function App() {
             className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-b from-zinc-950/55 via-zinc-950/35 to-zinc-950/60"
             aria-hidden
           />
-          <div className="relative z-10 mx-auto grid max-w-5xl items-start gap-10 px-5 py-20 md:grid-cols-[1fr_minmax(0,17rem)] md:items-center md:gap-12 md:px-8 md:py-28 lg:grid-cols-[1fr_minmax(0,19rem)]">
-            <div>
-              <p className="font-mono text-sm text-teal-400/90">Haifa, Israel</p>
-              <h1 className="text-gradient-brand mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl md:leading-[1.1]">
-                Vladislav Sokolov
-              </h1>
-              <p className="mt-3 text-xl text-zinc-400 md:text-2xl">
-                Software Architect & Technical Lead
-              </p>
-              <p className="mt-8 max-w-2xl text-lg leading-relaxed text-zinc-400">
-                14+ years building scalable products, microservices, and
-                cross-platform clients—from protocol work and backends to mobile
-                and TV apps.
-              </p>
-              <div className="mt-10 flex flex-wrap gap-4">
-                <a
-                  href="#contact"
-                  className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-teal-500/20 to-emerald-500/15 px-5 py-2.5 text-sm font-medium text-teal-200 ring-1 ring-teal-400/45 transition hover:from-teal-500/30 hover:to-emerald-500/25 hover:shadow-[0_0_24px_-4px_rgba(45,212,191,0.35)]"
-                >
-                  Get in touch
-                </a>
-                <a
-                  href="#experience"
-                  className="inline-flex items-center justify-center rounded-lg bg-zinc-900/40 px-5 py-2.5 text-sm font-medium text-zinc-300 ring-1 ring-zinc-600/80 transition hover:bg-white/[0.06] hover:ring-violet-500/25"
-                >
-                  View experience
-                </a>
+          <div className="relative z-10 w-full overflow-hidden py-[3.6rem] md:py-[5.04rem]">
+            <div
+              className="pointer-events-none absolute inset-0 bg-white/5"
+              aria-hidden
+            />
+            <div className="relative z-10 mx-auto max-w-5xl px-5 md:px-8">
+              <div className="grid items-start gap-10 md:grid-cols-[1fr_minmax(0,17rem)] md:items-center md:gap-12 lg:grid-cols-[1fr_minmax(0,19rem)]">
+                <div>
+                  <p className="font-mono text-sm text-teal-400/90">
+                    Haifa, Israel - Worldwide
+                  </p>
+                  <h1 className="text-gradient-brand mt-4 max-w-3xl text-4xl font-semibold tracking-tight md:text-5xl md:leading-[1.1]">
+                    Vladislav Sokolov
+                  </h1>
+                  <p className="mt-3 text-xl text-zinc-400 md:text-2xl">
+                    Software Architect & Technical Lead
+                  </p>
+                  <p className="mt-2 max-w-2xl text-lg leading-relaxed text-zinc-400">
+                    Over 16 years building scalable products, microservices, and
+                    cross-platform clients—from protocol work and backends to mobile
+                    and TV apps.
+                  </p>
+                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-zinc-500 md:text-lg">
+                    Building strong R&amp;D teams—hands-on in recruiting, ramp-up, and
+                    ongoing technical mentoring.
+                  </p>
+                  <div className="mt-10 flex flex-wrap gap-4">
+                    <a
+                      href="#contact"
+                      className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-teal-500/20 to-emerald-500/15 px-5 py-2.5 text-sm font-medium text-teal-200 ring-1 ring-teal-400/45 transition hover:from-teal-500/30 hover:to-emerald-500/25 hover:shadow-[0_0_24px_-4px_rgba(45,212,191,0.35)]"
+                    >
+                      Connect
+                    </a>
+                    <a
+                      href="#experience"
+                      className="inline-flex items-center justify-center rounded-lg bg-zinc-900/40 px-5 py-2.5 text-sm font-medium text-zinc-300 ring-1 ring-zinc-600/80 transition hover:bg-white/[0.06] hover:ring-violet-500/25"
+                    >
+                      View experience
+                    </a>
+                  </div>
+                </div>
+                <div className="mx-auto w-full max-w-[17rem] md:mx-0 md:max-w-none">
+                  <img
+                    src={`${import.meta.env.BASE_URL}portrait.png`}
+                    alt="Vladislav Sokolov"
+                    width={456}
+                    height={608}
+                    className="aspect-[3/4] w-full rounded-2xl object-cover object-top shadow-[0_12px_48px_-12px_rgba(0,0,0,0.5)] ring-1 ring-white/15"
+                    loading="eager"
+                    decoding="async"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="mx-auto w-full max-w-[17rem] md:mx-0 md:max-w-none">
-              <img
-                src={`${import.meta.env.BASE_URL}portrait.png`}
-                alt="Vladislav Sokolov"
-                width={456}
-                height={608}
-                className="aspect-[3/4] w-full rounded-2xl object-cover object-top shadow-[0_12px_48px_-12px_rgba(0,0,0,0.5)] ring-1 ring-white/15"
-                loading="eager"
-                decoding="async"
-              />
             </div>
           </div>
         </section>
@@ -511,13 +666,13 @@ export default function App() {
                   <dt className="font-mono text-xs uppercase tracking-wider text-zinc-500">
                     Experience
                   </dt>
-                  <dd className="mt-1 text-zinc-300">14+ years</dd>
+                  <dd className="mt-1 text-zinc-300">Over 16 years</dd>
                 </div>
                 <div>
                   <dt className="font-mono text-xs uppercase tracking-wider text-zinc-500">
                     Location
                   </dt>
-                  <dd className="mt-1 text-zinc-300">Haifa, Israel</dd>
+                  <dd className="mt-1 text-zinc-300">Haifa, Israel - Worldwide</dd>
                 </div>
                 <div>
                   <dt className="font-mono text-xs uppercase tracking-wider text-zinc-500">
@@ -533,65 +688,62 @@ export default function App() {
         <section className="border-y border-white/[0.06] bg-gradient-to-b from-violet-950/[0.12] via-transparent to-teal-950/[0.08]">
           <div className="mx-auto max-w-5xl px-5 py-16 md:px-8 md:py-24">
             <SectionTitle id="skills" eyebrow="Toolkit" title="Skills" />
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {skillGroups.map((g) => (
-                <div key={g.title}>
-                  <h3 className="font-mono text-xs uppercase tracking-[0.15em] text-zinc-500">
-                    {g.title}
-                  </h3>
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {g.items.map((item) => (
-                      <li key={item}>
-                        <span
-                          className={`inline-block rounded-md px-2.5 py-1 font-mono text-xs ${skillChipClass[g.variant]}`}
-                        >
-                          {item}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+            <SkillsTagCloud />
           </div>
         </section>
 
-        <section className="mx-auto max-w-5xl px-5 py-16 md:px-8 md:py-24">
+        <section className="mx-auto max-w-5xl px-5 py-16 font-mono text-sm leading-relaxed md:px-8 md:py-24 md:text-[0.9375rem]">
           <SectionTitle
             id="experience"
             eyebrow="Timeline"
             title="Experience"
           />
-          <ol className="relative list-none space-y-12 border-l border-white/[0.08] pl-8 md:pl-10 [&>li]:list-none">
+          <div className="relative mt-2" role="list">
+            <div
+              className="pointer-events-none absolute bottom-2 left-3 top-3 z-0 w-px -translate-x-1/2 bg-gradient-to-b from-teal-500/45 via-zinc-600/65 to-zinc-700/45"
+              aria-hidden
+            />
             {experience.map((job) => (
-              <li key={job.company} className="relative list-none">
-                <span className="absolute -left-[10px] top-1.5 h-3 w-3 rounded-full border-2 border-teal-400/90 bg-gradient-to-br from-teal-500/40 to-violet-600/50 shadow-[0_0_12px_rgba(45,212,191,0.35)] md:-left-[12px]" />
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between">
-                  <div className="flex items-start gap-3">
-                    <CompanyBrandMark brand={job.brand} />
-                    <div>
-                      <h3 className="text-lg font-semibold text-zinc-100">
-                        {job.company}
-                      </h3>
-                      <p className="text-zinc-400">{job.role}</p>
+              <div
+                key={job.company}
+                role="listitem"
+                className="relative z-10 flex gap-4 pb-14 last:pb-2 md:gap-5"
+              >
+                <div className="flex w-6 shrink-0 justify-center pt-1 md:w-7">
+                  <span
+                    className="size-3 shrink-0 rounded-full border-2 border-teal-400/90 bg-zinc-950 shadow-[0_0_14px_rgba(45,212,191,0.35)] ring-2 ring-zinc-950"
+                    aria-hidden
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <CompanyBrandMark brand={job.brand} />
+                      <div className="min-w-0">
+                        <h3 className="text-base font-semibold tracking-tight text-zinc-100 md:text-lg">
+                          {job.company}
+                        </h3>
+                        <p className="mt-0.5 text-zinc-400">{job.role}</p>
+                      </div>
                     </div>
-                  </div>
-                  <p className="font-mono text-sm text-zinc-500">
-                    {job.period}
-                    <span className="hidden sm:inline"> · </span>
-                    <span className="block sm:inline">{job.location}</span>
-                  </p>
-                </div>
-                <div className="mt-4 space-y-2 text-zinc-400">
-                  {job.highlights.map((h) => (
-                    <p key={h} className="leading-relaxed">
-                      {h}
+                    <p className="shrink-0 text-xs text-zinc-500 sm:text-right md:text-sm">
+                      {job.period}
+                      <span className="hidden sm:inline"> · </span>
+                      <span className="block sm:inline">{job.location}</span>
                     </p>
-                  ))}
+                  </div>
+                  <div className="mt-4 space-y-2 text-zinc-400">
+                    {job.highlights.map((h) => (
+                      <p key={h}>
+                        <span className="select-none text-teal-500/70">* </span>
+                        {h}
+                      </p>
+                    ))}
+                  </div>
                 </div>
-              </li>
+              </div>
             ))}
-          </ol>
+          </div>
         </section>
 
         <section className="border-t border-white/[0.06] bg-gradient-to-b from-zinc-950/40 to-transparent">
@@ -601,10 +753,11 @@ export default function App() {
               <article className="rounded-xl border border-white/[0.08] bg-gradient-to-br from-zinc-900/45 to-zinc-950/95 p-6 shadow-[0_0_50px_-20px_rgba(45,212,191,0.12)] ring-1 ring-teal-500/15 md:p-8">
                 <div className="flex flex-wrap items-center gap-3">
                   <img
-                    src={BRIGHT_DATA_LOGO}
-                    alt="Bright Data"
-                    className="h-8 w-auto max-w-[min(100%,11rem)] shrink-0 rounded-sm object-contain object-left ring-1 ring-white/20"
+                    src={BRIGHT_SDK_ICON}
+                    alt="Bright SDK"
+                    className="h-9 w-auto max-w-[min(100%,14rem)] shrink-0 object-contain object-left"
                     loading="lazy"
+                    referrerPolicy="no-referrer"
                   />
                   <h3 className="text-lg font-semibold text-zinc-100">
                     Bright SDK
@@ -623,9 +776,19 @@ export default function App() {
                 </p>
               </article>
               <article className="rounded-xl border border-white/[0.08] bg-gradient-to-br from-zinc-900/45 to-zinc-950/95 p-6 shadow-[0_0_50px_-20px_rgba(139,92,246,0.1)] ring-1 ring-violet-500/15 md:p-8">
-                <h3 className="text-lg font-semibold text-zinc-100">
-                  Leadership & mentorship
-                </h3>
+                <div className="flex flex-wrap items-center gap-3">
+                  <img
+                    src={PRIVATE_COMPANY_LOGO}
+                    alt="Medical articles platform"
+                    className="h-9 w-9 shrink-0 object-contain object-left"
+                    width={36}
+                    height={36}
+                    loading="lazy"
+                  />
+                  <h3 className="text-lg font-semibold text-zinc-100">
+                    Leadership & mentorship
+                  </h3>
+                </div>
                 <p className="mt-1 font-mono text-xs text-zinc-500">
                   Private company · 6 developers · QA automation
                 </p>
@@ -687,47 +850,47 @@ export default function App() {
               Contact
             </h2>
             <p className="mt-2 max-w-xl text-zinc-400">
-              Open to conversations about architecture, platform engineering, and
-              technical leadership. References available on request.
+              Happy to share experience on architecture, platform engineering,
+              and technical leadership—and to explore collaboration when there is
+              a good fit.
             </p>
-            <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center">
+            <div
+              className="mt-8 flex flex-wrap items-center gap-2 sm:gap-3"
+              aria-label="Contact links"
+            >
               <a
-                href="mailto:v0538276702@gmail.com"
-                className="inline-flex items-center gap-2 text-teal-300 underline decoration-teal-500/40 underline-offset-4 transition hover:decoration-teal-400"
+                href={`mailto:${CONTACT_EMAIL}`}
+                className={contactIconBtnClass}
+                aria-label={`Email ${CONTACT_EMAIL}`}
               >
-                v0538276702@gmail.com
+                <MailIcon className="h-5 w-5" />
               </a>
-              <span className="hidden text-zinc-600 sm:inline">·</span>
               <a
-                href="tel:+972538276702"
-                className="text-zinc-300 transition hover:text-teal-300"
+                href={WHATSAPP_URL}
+                target="_blank"
+                rel="noreferrer"
+                className={contactIconBtnClass}
+                aria-label="WhatsApp"
               >
-                +972 53-827-6702
+                <WhatsAppIcon className="h-5 w-5" />
               </a>
-            </div>
-            <div className="mt-6 flex gap-4">
               <a
                 href={LINKEDIN_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-zinc-400 ring-1 ring-zinc-700 transition hover:bg-white/5 hover:text-teal-300"
+                className={contactIconBtnClass}
+                aria-label="LinkedIn"
               >
-                <LinkedInIcon className="h-4 w-4" />
-                LinkedIn
+                <LinkedInIcon className="h-5 w-5" />
               </a>
               <a
-                href={GITHUB_CORPORATE_URL}
+                href={GITHUB_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm text-zinc-400 ring-1 ring-zinc-700 transition hover:bg-white/5 hover:text-teal-300"
+                className={contactIconBtnClass}
+                aria-label="GitHub"
               >
-                <GitHubIcon className="h-4 w-4" />
-                <span className="flex flex-col items-start gap-0.5 sm:flex-row sm:items-center sm:gap-2">
-                  <span>Corporate GitHub</span>
-                  <span className="font-mono text-xs text-zinc-500 sm:text-sm">
-                    @vladislavs-luminati
-                  </span>
-                </span>
+                <GitHubIcon className="h-5 w-5" />
               </a>
             </div>
           </div>
