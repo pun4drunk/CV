@@ -7,36 +7,52 @@ on:
     paths:
       - '.github/labels.yml'
       - '.github/workflows/sync-labels.yml'
+      - '.github/scripts/sync_labels.py'
 
-# Labels are part of the Issues API. If Issues are disabled on the repo, writes
-# return 403 — we skip this job so the workflow (and README badge) stays green.
-# To actually sync: enable Issues under Settings → General → Features, then
-# re-run this workflow or push a change to .github/labels.yml.
-#
-# If Issues are on but the job still 403s: Settings → Actions → General →
-# Workflow permissions → Read and write permissions (org default can block).
+# Labels use the Issues API. If Issues are disabled, the API returns 403 — we
+# detect that via repos.get and skip. For 403 with Issues on, set repo/org
+# Settings → Actions → Workflow permissions → Read and write.
 permissions:
   contents: read
   issues: write
+  pull-requests: write
 
 jobs:
   sync:
-    if: github.event.repository.has_issues
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - uses: EndBug/label-sync@v2
+      - name: Check whether Issues are enabled
+        id: repo
+        uses: actions/github-script@v7
         with:
-          config-file: .github/labels.yml
-          delete-other-labels: false
+          script: |
+            const { data } = await github.rest.repos.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            core.setOutput('has_issues', data.has_issues ? 'true' : 'false');
 
-  # When Issues are off, `sync` is skipped; a no-op job keeps the run green for the README badge.
-  skipped-because-no-issues:
-    if: ${{ !github.event.repository.has_issues }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Explain skip
+      - name: Set up Python
+        if: steps.repo.outputs.has_issues == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PyYAML
+        if: steps.repo.outputs.has_issues == 'true'
+        run: pip install 'PyYAML>=6,<7'
+
+      - name: Sync labels (REST API)
+        if: steps.repo.outputs.has_issues == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: python3 .github/scripts/sync_labels.py
+
+      - name: Issues disabled — skip
+        if: steps.repo.outputs.has_issues != 'true'
         run: |
-          echo "Repository has Issues disabled — label sync is skipped (Labels API unavailable)."
-          echo "Enable Issues under Settings → General → Features, then re-run this workflow."
+          echo "Issues are disabled for this repository; label sync is skipped."
+          echo "Enable Issues under Settings → General → Features, then re-run."

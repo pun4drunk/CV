@@ -1,5 +1,4 @@
-# Sync to the repo via Actions → "Sync labels" workflow (EndBug/label-sync)
-# https://github.com/EndBug/label-sync
+# Sync to the repo via Actions → "Sync labels" (.github/scripts/sync_labels.py)
 
 - name: bug
   color: d73a4a
@@ -54,5 +53,5 @@
   description: Not applicable or cannot reproduce
 
 - name: wontfix
-  color: ffffff
+  color: d0d0d0
   description: Will not be addressed
