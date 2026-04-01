@@ -331,24 +331,6 @@ const brightSdkIntegrationUtilityRepos: readonly {
     ],
   },
   {
-    slug: 'packages',
-    description: 'Bright SDK distribution packages and release artifacts.',
-    platforms: [
-      ...brightSdkNativePlatforms,
-      ...brightSdkTvPlatformsWithoutRoku,
-    ],
-  },
-  {
-    slug: 'react-native-sample',
-    description: 'Sample React Native app demonstrating Bright SDK integration.',
-    platforms: [
-      brightSdkIntegrationUtilityChipBySlug('react'),
-      brightSdkIntegrationUtilityChipBySlug('android'),
-      brightSdkApplePlatform,
-      brightSdkIntegrationUtilityChipBySlug('windows'),
-    ],
-  },
-  {
     slug: 'bright-sdk-external-consent',
     description:
       'External consent screen implementation for Bright SDK partners.',
@@ -1105,14 +1087,61 @@ const experience = [
       hotlink: true,
       logoScale: 2,
     },
-    role: 'Software Engineer → Technical Account Manager → R&D Team Leader',
-    period: 'Nov 2018 — Present',
+    role: 'R&D Team Lead',
+    period: 'Jun 2025 — Present',
     location: 'Netanya, Israel',
     highlights: [
-      'Architected and implemented Bright SDK, EarnApp, and BrightVideo, expanding platform capabilities.',
-      'Led backend development with Node.js, MongoDB, and Docker for scalable microservices.',
-      'Delivered mobile and TV apps across Java, Kotlin, Dart, JS, Swift, and C#.',
-      'Raised reliability through CI/CD and TDD.',
+      'Lead a multidisciplinary engineering team delivering backend and application-level capabilities.',
+      'Define technical direction, architecture priorities, and delivery standards for scalable, reliable systems.',
+      'Drive execution through planning, delegation, mentoring, and hands-on problem-solving when needed.',
+      'Improve team velocity and release confidence by strengthening CI/CD, testing, and engineering workflows.',
+      'Support hiring, onboarding, and growth of engineers to build a stronger long-term team foundation.',
+    ],
+  },
+  {
+    company: 'Bright Data',
+    brand: {
+      kind: 'image' as const,
+      src: BRIGHT_DATA_LOGO,
+      alt: 'Bright Data',
+      wide: true,
+      readable: true,
+      noBackground: true,
+      hotlink: true,
+      logoScale: 2,
+    },
+    role: 'Technical Account Manager',
+    period: 'Oct 2023 — Feb 2026',
+    location: 'Netanya, Israel',
+    highlights: [
+      'Partner with enterprise customers to translate business goals into clear technical implementation plans.',
+      'Lead technical discovery, onboarding, and integration guidance to reduce time-to-value.',
+      'Own high-impact escalations and coordinate cross-functional resolution with engineering and product teams.',
+      'Improve customer outcomes by identifying recurring technical friction and driving long-term fixes.',
+      'Act as a bridge between customer needs and product and engineering priorities, ensuring practical execution.',
+    ],
+  },
+  {
+    company: 'Bright Data',
+    brand: {
+      kind: 'image' as const,
+      src: BRIGHT_DATA_LOGO,
+      alt: 'Bright Data',
+      wide: true,
+      readable: true,
+      noBackground: true,
+      hotlink: true,
+      logoScale: 2,
+    },
+    role: 'Software Engineer (R&D)',
+    period: 'Nov 2018 — Jun 2025',
+    location: 'Netanya, Israel',
+    highlights: [
+      'Designed and delivered backend and application components used in production-scale environments.',
+      'Built and maintained services and integration tooling with focus on reliability, maintainability, and release quality.',
+      'Contributed to architecture decisions that improved system scalability and reduced operational risk.',
+      'Collaborated across product, engineering, and customer-facing teams to turn complex requirements into shipped outcomes.',
+      'Strengthened delivery practices through CI/CD, test automation, and clearer engineering workflows.',
     ],
   },
   {
@@ -1124,14 +1153,15 @@ const experience = [
       onLight: true,
       wide: true,
     },
-    role: 'Software Engineer',
+    role: 'Software Engineer (R&D)',
     period: '2017 — 2018',
     location: 'Netanya, Israel',
     highlights: [
-      'Built server-side applications with Node.js.',
-      'Shipped hybrid apps with React Native for faster release cycles.',
-      'Used AngularJS, React, and NPM for web delivery.',
-      'Applied secure web patterns (AJAX, REST, SSL).',
+      'Developed server-side and application features for production products using modern JavaScript technologies.',
+      'Built and shipped web and hybrid app functionality with strong focus on performance and delivery speed.',
+      'Implemented API-driven integrations and secure communication patterns across system components.',
+      'Worked closely with cross-functional teams to improve release cadence and feature quality.',
+      'Contributed to practical engineering solutions that balanced product needs with technical sustainability.',
     ],
   },
   {
@@ -1166,10 +1196,11 @@ const experience = [
     period: '2015 — 2017',
     location: 'Carmiel, Israel',
     highlights: [
-      'Developed web apps with Node.js, PHP, HTML, and CSS; targeted 99.9% uptime.',
-      'Delivered with Agile, Gulp, Webpack, and Mocha.',
-      'Worked with MySQL, MS-SQL, PostgreSQL, MongoDB, CouchBase, and Redis.',
-      'Automated testing to improve deployment efficiency by ~30%.',
+      'Built and maintained web applications across backend and frontend layers for multiple client products.',
+      'Designed and integrated APIs and data flows across relational and non-relational databases.',
+      'Improved deployment reliability through automation, testing, and structured release practices.',
+      'Delivered features in Agile environments while maintaining code quality and system stability.',
+      'Supported long-term product evolution through scalable architecture and pragmatic technical decisions.',
     ],
   },
 ] as const
@@ -1459,14 +1490,14 @@ function CompanyBrandMark({ brand }: { brand: CompanyBrand }) {
     const scale = brand.logoScale === 2 ? 2 : 1
     const sizeClass = brand.readable
       ? scale === 2
-        ? 'h-16 max-w-[min(100%,20rem)] sm:h-[4.5rem] sm:max-w-[26rem]'
-        : 'h-8 max-w-[min(100%,10rem)] sm:h-9 sm:max-w-[13rem]'
+        ? 'h-8 max-w-[min(100%,10rem)] sm:h-9 sm:max-w-[12rem]'
+        : 'h-7 max-w-[min(100%,9rem)] sm:h-8 sm:max-w-[10rem]'
       : brand.wide
         ? scale === 2
-          ? 'h-12 max-w-[min(100%,15rem)] sm:h-14 sm:max-w-[18rem]'
-          : 'h-6 max-w-[min(100%,7.5rem)] sm:h-7 sm:max-w-[9rem]'
+          ? 'h-8 max-w-[min(100%,10rem)] sm:h-9 sm:max-w-[12rem]'
+          : 'h-6 max-w-[min(100%,7.5rem)] sm:h-7 sm:max-w-[8.5rem]'
         : scale === 2
-          ? 'h-10 max-w-[11rem]'
+          ? 'h-8 max-w-[9rem]'
           : 'h-5 max-w-[5.5rem]'
     const img = (
       <img
@@ -1694,7 +1725,7 @@ export default function App() {
                   </p>
                   <p className="mt-2 max-w-2xl text-base leading-relaxed text-zinc-400 sm:text-lg">
                     Over 16 years building scalable products, microservices, and
-                    cross-platform clients—from protocol work and backends to mobile
+                    cross-platform clients - from protocol work and backends to mobile
                     and TV apps.
                   </p>
                   <p className="mt-3 max-w-2xl text-sm leading-relaxed text-zinc-500 sm:mt-4 sm:text-base md:text-lg">
@@ -1793,7 +1824,7 @@ export default function App() {
             />
             {experience.map((job) => (
               <div
-                key={job.company}
+                key={`${job.company}-${job.role}`}
                 role="listitem"
                 className="relative z-10 flex gap-4 pb-14 last:pb-2 md:gap-5"
               >
@@ -1806,7 +1837,9 @@ export default function App() {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
                     <div className="flex min-w-0 items-start gap-3">
-                      <CompanyBrandMark brand={job.brand} />
+                      <div className="-mt-1 flex h-12 shrink-0 items-start">
+                        <CompanyBrandMark brand={job.brand} />
+                      </div>
                       <div className="min-w-0">
                         {job.company === 'Private company' ? (
                           <>
@@ -1832,7 +1865,7 @@ export default function App() {
                       </span>
                     </p>
                   </div>
-                  <div className="mt-4 space-y-2 text-zinc-400">
+                  <div className="mt-4 space-y-2 text-[11px] text-zinc-400 sm:text-xs md:text-sm">
                     {job.highlights.map((h) => (
                       <p key={h} className="text-pretty break-words">
                         <span className="select-none text-teal-500/70">* </span>
@@ -1966,8 +1999,8 @@ export default function App() {
                     </p>
                     <p className="mt-4 text-base leading-relaxed text-zinc-400">
                       Public repositories that support SDK adoption: platform
-                      samples (Unity, React Native, web), distribution packages,
-                      and consent UX helpers for partners.
+                      samples (Unity, React Native, web), and consent UX helpers
+                      for partners.
                     </p>
                     <div className="mt-6 flex flex-wrap gap-3">
                       <button
